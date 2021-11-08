@@ -1,0 +1,51 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
+
+config_version=4
+
+_global_script_classes=[ {
+"base": "Reference",
+"class": "Gonsol_Actions",
+"language": "GDScript",
+"path": "res://addons/gonsol/actions.gd"
+}, {
+"base": "Reference",
+"class": "Gonsol_Completer",
+"language": "GDScript",
+"path": "res://addons/gonsol/completer.gd"
+}, {
+"base": "Reference",
+"class": "Gonsol_Pause",
+"language": "GDScript",
+"path": "res://addons/gonsol/pause.gd"
+}, {
+"base": "RichTextLabel",
+"class": "Gonsol_Result",
+"language": "GDScript",
+"path": "res://addons/gonsol/result.gd"
+} ]
+_global_script_class_icons={
+"Gonsol_Actions": "",
+"Gonsol_Completer": "",
+"Gonsol_Pause": "",
+"Gonsol_Result": ""
+}
+
+[application]
+
+config/name="Gonsol"
+run/main_scene="res://root.tscn"
+config/icon="res://icon.png"
+
+[physics]
+
+common/enable_pause_aware_picking=true
+
+[rendering]
+
+environment/default_environment="res://default_env.tres"
