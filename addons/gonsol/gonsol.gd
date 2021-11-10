@@ -21,8 +21,8 @@ func _readyers() -> Array:
 		funcref(self, "_r_scroll"),
 		funcref(self, "_r_lines"),
 		funcref(self, "_r_get_line"),
-		funcref(self, "_r_prompt"),
-		funcref(self, "_r_line_edit"),
+		#funcref(self, "_r_prompt"),
+		#funcref(self, "_r_line_edit"),
 		funcref(self, "_r_line"), 
 		funcref(self, "_r_capture"),
 		funcref(self, "_r_welcome"),
@@ -39,9 +39,9 @@ func _r_display():
 func _r_scroll():
 	g_scroll = $Window/Display/ScrollContainer
 	g_scroll.set_follow_focus(true)
-#	#g_scroll.mouse_filter = Control.MOUSE_FILTER_IGNORE
-#	var h_scroll = g_scroll.get_h_scrollbar()
-#	#h_scroll.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	g_scroll.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var h_scroll = g_scroll.get_h_scrollbar()
+	h_scroll.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var v_scroll = g_scroll.get_v_scrollbar()
 	v_scroll.connect("changed", self, "auto_scroll")
 #	#v_scroll.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -69,20 +69,23 @@ func auto_scroll():
 func _r_lines():
 	g_lines = $Window/Display/ScrollContainer/VBoxContainer
 
-const line_scn = preload("res://addons/gonsol/line.tscn")
+# const line_scn = preload("res://addons/gonsol/line.tscn")
 
 func _r_get_line():
-	g_line = line_scn.instance()
+	g_line = Gonsol_Line.new() # line_scn.instance()
 	# g_line = $Window/Display/ScrollContainer/VBoxContainer/HBoxContainer
 
 func _r_prompt():
-	g_prompt = g_line.get_node("Prompt")
+	#g_prompt = g_line.get_node("Prompt")
 	# g_prompt = $Window/Display/ScrollContainer/VBoxContainer/HBoxContainer/RichTextLabel
-	g_prompt.set_string_ratio_width_fn(funcref(g_display, "string_ratio_width_normal"))
-	g_prompt.Next()
+	#g_prompt.set_string_ratio_width_fn(funcref(g_display, "string_ratio_width_normal"))
+	g_line.set_string_ratio_width_fn(funcref(g_display, "string_ratio_width_normal"))
+	#g_prompt.Next()
+	g_line.Next()
 
 func _r_line_edit():
 	g_line_edit = g_line.get_node("LineEdit")
+	print(g_line_edit)
 	# g_line_edit = $PanelContainer/Panel/ScrollContainer/VBoxContainer/HBoxContainer/LineEdit
 	# g_line_edit.connect("text_changed", completer, "update")
 	g_line_edit.connect('text_entered', self, "_input_exec")
@@ -106,24 +109,24 @@ func _output_exec(d:Dictionary):
 func gui_write(data:Dictionary):
 	var message = data.get("output", "no gonsol output")
 	var called = data.get("input", no_called)
-	var nxt:RichTextLabel = new_output(message, called)
+	var nxt:Display_Item = new_output(message, called)
 	call_deferred("gui_write_attach", nxt)
 
 const no_called:String = "called not specified"
 
-func new_output(message:String, called:String=no_called) -> RichTextLabel:
+func new_output(message:String, called:String=no_called) -> Display_Item:
 	var o_msg:String
 	var echo_called = (called != no_called)
 	if echo_called:
 		o_msg = g_prompt.Current(called) + '\n' + message
 	if !echo_called:
 		o_msg = message
-	var ret = Gonsol_Result.new(o_msg)
-	ret.connect('meta_clicked', g_line_edit, 'set_text')
+	var ret = Display_Item.new(o_msg)
+	# ret.connect('meta_clicked', g_line_edit, 'set_text')
 	next_bump = g_display.string_rows_height_normal(o_msg)
 	return ret
 
-func gui_write_attach(nxt:RichTextLabel):
+func gui_write_attach(nxt:Display_Item):
 	g_lines.add_child(nxt)
 	g_line.raise()
 
@@ -147,7 +150,8 @@ var previous_focus_owner
 
 func _enter_pause(d):
 	g_window.hide()
-	g_line_edit.accept_event()
+	#g_line_edit.accept_event()
+	g_line.accept_event()
 	_defocus_line(null)
 	# gonsol_output.toggle()
 
@@ -155,20 +159,22 @@ func _defocus_line(d):
 	if is_instance_valid(previous_focus_owner):
 		previous_focus_owner.grab_focus()
 	previous_focus_owner = null
-	g_line_edit.release_focus()
+	# g_line_edit.release_focus()
 	# g_scroll.release_focus()
 
 func _exit_pause(d):
-	g_line_edit.accept_event()   # prevent toggle character echoing to line
+	#g_line_edit.accept_event()   # prevent toggle character echoing to line
+	g_line.accept_event()
 	g_window.show()
 	_focus_line(null)
-	g_line_edit.clear()
-	g_prompt.Next()
+	# g_line_edit.clear()
+	#g_prompt.Next()
+	g_line.Next()
 	# gonsol_output.toggle()
 
 func _focus_line(d):
-	previous_focus_owner = g_line_edit.get_focus_owner()
-	g_line_edit.grab_focus()
+	pass # previous_focus_owner = g_line_edit.get_focus_owner()
+	# g_line_edit.grab_focus()
 
 func _r_welcome():
 	pass #	print("gonsol READY")

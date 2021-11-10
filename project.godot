@@ -9,6 +9,11 @@
 config_version=4
 
 _global_script_classes=[ {
+"base": "HBoxContainer",
+"class": "Display_Item",
+"language": "GDScript",
+"path": "res://addons/gonsol/display_item.gd"
+}, {
 "base": "Reference",
 "class": "Gonsol_Actions",
 "language": "GDScript",
@@ -19,21 +24,16 @@ _global_script_classes=[ {
 "language": "GDScript",
 "path": "res://addons/gonsol/completer.gd"
 }, {
-"base": "Reference",
-"class": "Gonsol_Pause",
+"base": "Display_Item",
+"class": "Gonsol_Line",
 "language": "GDScript",
-"path": "res://addons/gonsol/pause.gd"
-}, {
-"base": "RichTextLabel",
-"class": "Gonsol_Result",
-"language": "GDScript",
-"path": "res://addons/gonsol/result.gd"
+"path": "res://addons/gonsol/line.gd"
 } ]
 _global_script_class_icons={
+"Display_Item": "",
 "Gonsol_Actions": "",
 "Gonsol_Completer": "",
-"Gonsol_Pause": "",
-"Gonsol_Result": ""
+"Gonsol_Line": ""
 }
 
 [application]

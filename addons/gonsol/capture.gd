@@ -1,6 +1,12 @@
 extends Control
 
 var _c:Dictionary
+# var idle
+var paused:bool
+var focused:bool
+# var focus_owner:Control
+# var prev_focus_owner:Control
+var default_focus_owner:Control
 
 func collect(k:String, data):
 	var fns = _c.get(k, [])
@@ -49,7 +55,7 @@ func _i_gui():
 	
 func _guiers() -> Array:
 	return [
-		funcref(self, "_is_gui"),
+		# funcref(self, "_is_gui"),
 		# funcref(self, "_is_scroll"),
 	]
 
@@ -58,34 +64,20 @@ func _ready():
 
 func _readyers() -> Array:
 	return [
-		funcref(self, "_r_mouse_enter"),
-		funcref(self, "_r_mouse_exit"),
+		funcref(self, "_r_mouse_position"),
+		funcref(self, "_r_focusing"),
 	]
 
-func _r_mouse_enter(_d):
-	connect("mouse_entered", self, "_on_mouse_enter")
-	##process("FOCUS", [funcref(self, "_mouse_enter_focus")])
-	#process("FOCUS", [])
-
-func _on_mouse_enter():
-	collect("FOCUS", null)
-
-#func _mouse_enter_focus(_d):
-#	emit_signal("g_focused", true)
-
-func _r_mouse_exit(_d):
-	connect("mouse_exited", self, "_on_mouse_exit")
-	##process("DEFOCUS", [funcref(self, "_mouse_exit_focus")])
-	#process("DEFOCUS", [])
-
-func _on_mouse_exit():
-	collect("DEFOCUS", null)
-
-#func _mouse_exit_focus(_d):
-#	emit_signal("g_focused", false)
+func _r_mouse_position(_d):
+	set_collect("INPUTING", [funcref(self, "_mouse_position")])
+	
+func _r_focusing(_d):
+	set_collect("INPUTING", [funcref(self, "_is_focus")])
 
 func _input(e):
 	collect("INPUT", e)
+	if !paused:
+		collect("INPUTING", e)
 
 func _is_toggle(e):
 	if (e is InputEvent):
@@ -101,16 +93,16 @@ func _is_toggled(e):
 			_toggle()
 			# print("gonsol_toggled")
 
-var paused:bool
-
 func _toggle():
 	if paused:
 		paused = false
+		focused = true
 		# print("pause_exit")
 		_defer_action_parse("PAUSE_EXIT")
 		return
 	if !paused:
 		paused = true
+		focused = false
 		# print("pause_enter")
 		_defer_action_parse("PAUSE_ENTER")
 		return 
@@ -125,6 +117,26 @@ func _is_enter_pause(e):
 		accept_event()
 		collect("PAUSE_ENTER", null)
 
+func _mouse_position(e):
+	if (e is InputEventMouseMotion):
+		var r = get_global_rect()
+		var has_focused = r.has_point(e.global_position)
+		if has_focused != focused:
+			focused = has_focused
+			if focused:
+				_defer_action_parse("FOCUS_TRUE")
+			if !focused:
+				_defer_action_parse("FOCUS_FALSE")
+			# print(focused)
+
+func _is_focus(e):
+	if _is_g_action(e, "FOCUS_TRUE"):
+		collect("FOCUS", null)
+		accept_event()
+	if _is_g_action(e, "FOCUS_FALSE"):
+		collect("DEFOCUS", null)
+		accept_event()
+		
 #func _is_action(e):
 #	if (e is InputEventAction):
 #		print("action at _input %s"%[e.action])
@@ -143,6 +155,9 @@ func _gui_input(e):
 # func _is_scroll_up
 
 # func _is_scroll_down
+
+func _action_parse(k:String):
+	Input.parse_input_event(_g_action(k))
 
 func _defer_action_parse(k:String):
 	Input.call_deferred(
@@ -165,3 +180,25 @@ func _is_g_action(e, k:String) -> bool:
 
 #func print_mouse_exit_focus(_d):
 #	print("mouse exit gonsol area")
+
+#func _r_mouse_enter(_d):
+	#connect("mouse_entered", self, "_on_mouse_enter")
+	##process("FOCUS", [funcref(self, "_mouse_enter_focus")])
+	#process("FOCUS", [])
+
+#func _on_mouse_enter():
+#	collect("FOCUS", null)
+
+#func _mouse_enter_focus(_d):
+#	emit_signal("g_focused", true)
+
+#func _r_mouse_exit(_d):
+#	connect("mouse_exited", self, "_on_mouse_exit")
+	##process("DEFOCUS", [funcref(self, "_mouse_exit_focus")])
+	#process("DEFOCUS", [])
+
+#func _on_mouse_exit():
+#	collect("DEFOCUS", null)
+
+#func _mouse_exit_focus(_d):
+#	emit_signal("g_focused", false)
