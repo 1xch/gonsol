@@ -1,14 +1,13 @@
 extends CanvasLayer
 
-var g_window:PanelContainer
-var g_display:Panel
-var next_bump:int
-var g_scroll:ScrollContainer
-var g_lines:VBoxContainer
-var g_line:HBoxContainer
-var g_prompt:RichTextLabel
-var g_line_edit:LineEdit
-var inner_clear_fn:FuncRef
+var g_window:PanelContainer           # Window
+var g_display:Panel                   # Display
+var next_bump:int                     # number of lines for next output result
+var g_scroll:ScrollContainer          # held inside Display
+var g_lines:VBoxContainer             # held inside Display scrollcontainer
+var g_line:HBoxContainer              # prompt & linedit Display_Item
+# var inner_clear_count_fn:FuncRef     # number of lines to 'clear' i.e. push up display items so none are visible
+var g_capture:Control                 # Capture
 
 func _ready():
 	for fn in _readyers():
@@ -17,44 +16,46 @@ func _ready():
 func _readyers() -> Array:
 	return [
 		funcref(self, "_r_window"),
+		funcref(self, "_r_capture"),
 		funcref(self, "_r_display"), 
 		funcref(self, "_r_scroll"),
 		funcref(self, "_r_lines"),
-		funcref(self, "_r_get_line"),
-		#funcref(self, "_r_prompt"),
-		#funcref(self, "_r_line_edit"),
-		funcref(self, "_r_line"), 
-		funcref(self, "_r_capture"),
+		funcref(self, "_r_line"),
 		funcref(self, "_r_welcome"),
 	]
 
 func _r_window():
 	g_window = $Window
 
+func _r_capture():
+	g_capture = $Window/Capture
+	g_capture.set_collect("PAUSE_ENTER", [funcref(self, "_enter_pause")])
+	g_capture.set_collect("PAUSE_EXIT", [funcref(self, "_exit_pause")])
+	# _link_display_item(g_line)
+	#g_capture.connect("display", g_scroll, "on_display")
+	#g_line.connect("im_focus", g_capture, "on_im_focus")
+	#g_capture.connect("captured", g_line, "on_capture")
+	g_capture.call_deferred("_toggle")
+	# g_capture.propagate_call("set_mouse_filter", [Control.MOUSE_FILTER_PASS])
+	# g_capture.propagate_call("set_mouse_filter", [Control.MOUSE_FILTER_IGNORE])
+	#g_capture.set_mouse_filter(Control.MOUSE_FILTER_PASS)
+
 func _r_display():
 	g_display = $Window/Display
-#	# gonsol_commands.clear_lines_count 
-	#inner_clear_fn = funcref(g_display, "display_rows_normal")
+	# inner_clear_count_fn = funcref(g_display, "display_rows_normal")
 
 func _r_scroll():
 	g_scroll = $Window/Display/ScrollContainer
 	g_scroll.set_follow_focus(true)
-	g_scroll.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	g_scroll.mouse_filter = Control.MOUSE_FILTER_PASS #IGNORE
 	var h_scroll = g_scroll.get_h_scrollbar()
-	h_scroll.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	#h_scroll.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var v_scroll = g_scroll.get_v_scrollbar()
-	v_scroll.connect("changed", self, "auto_scroll")
-#	#v_scroll.mouse_filter = Control.MOUSE_FILTER_IGNORE
-#	#g_scroll.connect("scroll_started", self, "_scroll_capture")
-#	#g_scroll.connect("mouse_entered", self, "_scroll_capture")
+	#v_scroll.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	v_scroll.connect("changed", self, "auto_scroll") # on Range object
+	# g_capture.connect("display", g_scroll, "on_display")
 
-#func _scroll_capture():
-#	print("SCROLL_CAPTURE")
-
-# TODO: both complete autoscroll after command & ability to scroll back 
-# if uncomment the last line, you get complete autoscroll after command
-# but no ability to scroll up, when commented you get the opposite
-# bottom line, this is crap and some magic numbers
+# TODO: remove magic numbers
 var auto_scroll_lock_out:bool
 func auto_scroll():
 	if auto_scroll_lock_out:   # prevent recursion
@@ -69,26 +70,18 @@ func auto_scroll():
 func _r_lines():
 	g_lines = $Window/Display/ScrollContainer/VBoxContainer
 
-# const line_scn = preload("res://addons/gonsol/line.tscn")
-
-func _r_get_line():
-	g_line = Gonsol_Line.new() # line_scn.instance()
-	# g_line = $Window/Display/ScrollContainer/VBoxContainer/HBoxContainer
-
-func _r_prompt():
-	#g_prompt = g_line.get_node("Prompt")
-	# g_prompt = $Window/Display/ScrollContainer/VBoxContainer/HBoxContainer/RichTextLabel
-	#g_prompt.set_string_ratio_width_fn(funcref(g_display, "string_ratio_width_normal"))
+func _r_line():
+	g_line = Gonsol_Line.new()
 	g_line.set_string_ratio_width_fn(funcref(g_display, "string_ratio_width_normal"))
-	#g_prompt.Next()
 	g_line.Next()
-
-func _r_line_edit():
-	g_line_edit = g_line.get_node("LineEdit")
-	print(g_line_edit)
-	# g_line_edit = $PanelContainer/Panel/ScrollContainer/VBoxContainer/HBoxContainer/LineEdit
+	g_line.set_text_entered(funcref(self, "_input_exec"))
 	# g_line_edit.connect("text_changed", completer, "update")
-	g_line_edit.connect('text_entered', self, "_input_exec")
+	_link_display_item(g_line)
+	g_lines.add_child(g_line)
+	g_line.raise()
+
+func _r_welcome():
+	_output_exec({"output": "[b][color=purple]**GONSOL WELCOME!**[/color][/b]"})
 
 # simple echo
 func _input_exec(i:String):
@@ -100,7 +93,7 @@ func _input_exec(i:String):
 	input_post()
 
 func input_post():
-	g_line_edit.clear()
+	g_line.Clear()
 
 func _output_exec(d:Dictionary):
 	gui_write(d)
@@ -118,13 +111,20 @@ func new_output(message:String, called:String=no_called) -> Display_Item:
 	var o_msg:String
 	var echo_called = (called != no_called)
 	if echo_called:
-		o_msg = g_prompt.Current(called) + '\n' + message
+		o_msg = g_line.Current(called) + '\n' + message
 	if !echo_called:
 		o_msg = message
-	var ret = Display_Item.new(o_msg)
-	# ret.connect('meta_clicked', g_line_edit, 'set_text')
+	var ret = Display_Item.new()
+	ret.set_message(o_msg)
+	_link_display_item(ret)
+	ret.meta_clicked(g_line)
 	next_bump = g_display.string_rows_height_normal(o_msg)
 	return ret
+
+func _link_display_item(i:Display_Item):
+	i.connect("my_turn", g_capture, "on_my_turn")
+	# g_capture.connect("display", i, "on_display")
+	g_capture.connect("captured", i, "on_capture")
 
 func gui_write_attach(nxt:Display_Item):
 	g_lines.add_child(nxt)
@@ -132,55 +132,34 @@ func gui_write_attach(nxt:Display_Item):
 
 func output_post():
 	auto_scroll_lock_out = false
-	g_prompt.Next()
-
-func _r_line():
-	g_lines.add_child(g_line)
-	g_line.raise()
-
-func _r_capture():
-	var c = $Window/Capture
-	#c.set_collect("FOCUS", [funcref(self, "_focus_line")])
-	#c.set_collect("DEFOCUS", [funcref(self, "_defocus_line")])
-	c.set_collect("PAUSE_ENTER", [funcref(self, "_enter_pause")])
-	c.set_collect("PAUSE_EXIT", [funcref(self, "_exit_pause")])
-	c.call_deferred("_toggle") 
-
-var previous_focus_owner 
-
-func _enter_pause(d):
-	g_window.hide()
-	#g_line_edit.accept_event()
-	g_line.accept_event()
-	_defocus_line(null)
-	# gonsol_output.toggle()
-
-func _defocus_line(d):
-	if is_instance_valid(previous_focus_owner):
-		previous_focus_owner.grab_focus()
-	previous_focus_owner = null
-	# g_line_edit.release_focus()
-	# g_scroll.release_focus()
-
-func _exit_pause(d):
-	#g_line_edit.accept_event()   # prevent toggle character echoing to line
-	g_line.accept_event()
-	g_window.show()
-	_focus_line(null)
-	# g_line_edit.clear()
-	#g_prompt.Next()
 	g_line.Next()
-	# gonsol_output.toggle()
 
-func _focus_line(d):
-	pass # previous_focus_owner = g_line_edit.get_focus_owner()
-	# g_line_edit.grab_focus()
+func _enter_pause(_d):
+	g_window.hide()
 
-func _r_welcome():
-	pass #	print("gonsol READY")
+func _exit_pause(_d):
+	g_window.show()
+	g_line.Next()
+	g_line.get_focus()
+	g_capture.capture_state()
 
 #func clear_count() -> int:
 #	var ret = 0
-#	if inner_clear_fn != null:
-#		ret = inner_clear_fn.call_func()
+#	if inner_clear_count_fn != null:
+#		ret = inner_clear_count_fn.call_func()
 #	return ret
+
+func _input(e):
+#	print(e.as_text())
+	if (e is Gonsol_Event):
+		if e.Consumed():
+			g_window.accept_event()
+		#print(e.action)
+		#print("gonsol_event")
+		##g_window.accept_event()
+
+#func _gui_input(e):
+#	print(e.as_text())
+#	if (e is Gonsol_Event):
+#		print("gonsol_gui_event")
+#		#g_window.accept_event()

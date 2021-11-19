@@ -19,10 +19,10 @@ _global_script_classes=[ {
 "language": "GDScript",
 "path": "res://addons/gonsol/actions.gd"
 }, {
-"base": "Reference",
-"class": "Gonsol_Completer",
+"base": "InputEventAction",
+"class": "Gonsol_Event",
 "language": "GDScript",
-"path": "res://addons/gonsol/completer.gd"
+"path": "res://addons/gonsol/event.gd"
 }, {
 "base": "Display_Item",
 "class": "Gonsol_Line",
@@ -32,7 +32,7 @@ _global_script_classes=[ {
 _global_script_class_icons={
 "Display_Item": "",
 "Gonsol_Actions": "",
-"Gonsol_Completer": "",
+"Gonsol_Event": "",
 "Gonsol_Line": ""
 }
 

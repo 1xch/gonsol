@@ -1,17 +1,4 @@
-# TODO: accomodate bbcode with measuring and counting widths
 extends Panel
-
-#func _init():
-#	connect("mouse_entered", self, "_mouse_entered")
-#	connect("mouse_exited", self, "_mouse_exited")
-
-#func _mouse_entered():
-#	print("mouse enter DISPLAY")
-#	grab_focus()
-	
-#func _mouse_exited():
-#	print("mouse exit DISPLAY")
-#	release_focus()
 
 const height_margin:int = 1
 
