@@ -32,4 +32,3 @@ func Consumed() -> bool:
 
 func consume():
 	consumed = true
-	

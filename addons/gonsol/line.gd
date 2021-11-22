@@ -76,13 +76,11 @@ func _on_text_entered(t:String):
 
 # input
 func _focused():
-	# print("IM FOCUSED")
 	# _data.add_stylebox_override("normal", f_style)
 	emit_signal("my_turn", _line_edit)
 	
 func _defocused():
-	pass #	print("IM DEFOCUSED")
-#	_data.add_stylebox_override("normal", d_style)
+	pass#	_data.add_stylebox_override("normal", d_style)
 	
 func grab_focus():
 	_line_edit.grab_focus()
@@ -103,6 +101,6 @@ func _input(e):
 
 func set_text(txt, caret_to_end=true):
 	_line_edit.text = txt
-	_line_edit.grab_focus() # grab_focus()
+	_line_edit.grab_focus()
 	if caret_to_end:
 		_line_edit.caret_position = txt.length()

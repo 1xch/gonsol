@@ -69,6 +69,7 @@ func _input(e):
 		if ce != null:
 			ce.call_func(e)
 
+# eliminate
 func _is_di_event(e) -> bool:
 	if (e is Gonsol_Event):
 		return true

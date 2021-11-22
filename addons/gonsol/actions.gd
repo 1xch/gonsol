@@ -22,6 +22,7 @@ func generateable() -> Array:
 		{"TYPE":KEYS, "ACTION":"GONSOL_SCROLL","SCAN":[KEY_PAGEUP,KEY_PAGEDOWN]},
 		{"TYPE":KEYS, "ACTION":"GONSOL_REVIEW","SCAN":[KEY_UP,KEY_DOWN]},
 		{"TYPE":KEYS, "ACTION":"GONSOL_COMPLETE","SCAN":[KEY_TAB]},
+		# CTRL-L: clear
 	]
 
 enum{

@@ -26,19 +26,15 @@ func _readyers() -> Array:
 
 func _r_window():
 	g_window = $Window
+	# g_window.propagate_call("set_mouse_filter", [Control.MOUSE_FILTER_IGNORE])
 
 func _r_capture():
 	g_capture = $Window/Capture
 	g_capture.set_collect("PAUSE_ENTER", [funcref(self, "_enter_pause")])
 	g_capture.set_collect("PAUSE_EXIT", [funcref(self, "_exit_pause")])
-	# _link_display_item(g_line)
-	#g_capture.connect("display", g_scroll, "on_display")
-	#g_line.connect("im_focus", g_capture, "on_im_focus")
-	#g_capture.connect("captured", g_line, "on_capture")
 	g_capture.call_deferred("_toggle")
 	# g_capture.propagate_call("set_mouse_filter", [Control.MOUSE_FILTER_PASS])
-	# g_capture.propagate_call("set_mouse_filter", [Control.MOUSE_FILTER_IGNORE])
-	#g_capture.set_mouse_filter(Control.MOUSE_FILTER_PASS)
+	# g_capture.set_mouse_filter(Control.MOUSE_FILTER_PASS)
 
 func _r_display():
 	g_display = $Window/Display
@@ -53,7 +49,6 @@ func _r_scroll():
 	var v_scroll = g_scroll.get_v_scrollbar()
 	#v_scroll.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	v_scroll.connect("changed", self, "auto_scroll") # on Range object
-	# g_capture.connect("display", g_scroll, "on_display")
 
 # TODO: remove magic numbers
 var auto_scroll_lock_out:bool
@@ -150,16 +145,6 @@ func _exit_pause(_d):
 #	return ret
 
 func _input(e):
-#	print(e.as_text())
 	if (e is Gonsol_Event):
 		if e.Consumed():
 			g_window.accept_event()
-		#print(e.action)
-		#print("gonsol_event")
-		##g_window.accept_event()
-
-#func _gui_input(e):
-#	print(e.as_text())
-#	if (e is Gonsol_Event):
-#		print("gonsol_gui_event")
-#		#g_window.accept_event()

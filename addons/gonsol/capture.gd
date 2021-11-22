@@ -10,6 +10,7 @@ var focused:bool
 var focus_owner:Control
 var prev_focus_owner:Control
 var default_focus_owner:Control
+# mode: line (review & completion with arrows, tab), default (arrows scroll, no tab) 
 
 signal captured(c)
 
@@ -60,15 +61,18 @@ func _r_capturing(_d):
 	set_collect("INPUTING", [funcref(self, "_is_focus")])
 	set_collect("FOCUS", [funcref(self, "_is_captured")])
 	set_collect("DEFOCUS", [funcref(self, "_is_released")])
-	set_collect("CAPTURING", [funcref(self, "_is_esc"), funcref(self, "_is_gonsol")])
+	set_collect("CAPTURING", [
+		funcref(self, "_is_esc"),
+		# funcref(self, "_is_clear"), 
+		funcref(self, "_is_gonsol"),
+		])
 
 func _input(e):
 	collect("INPUT", e)               # toggle,toggled,exit_pause,enter_pause
 	if !paused:
 		collect("INPUTING", e)        # mouse_postion,is_focus 
 		if captured:
-			collect("CAPTURING", e)   # is_esc, is_gonsol
-			# _is_available(e) # accept_event()
+			collect("CAPTURING", e)   # is_esc,is_clear,is_gonsol,etc.
 
 func _inputers() -> Array:
 	return [
@@ -145,8 +149,7 @@ func _is_released(_d):
 	emit_signal("captured", false)
 
 func _on_captured(s:bool):
-	captured = s
-	print("captured == "+String(captured))
+	captured = s # print("captured == "+String(captured))
 
 func _is_esc(e):
 	if (e is InputEvent):
@@ -157,7 +160,6 @@ func _is_gonsol(e):
 	var ne = _available_action(e)
 	if ne != null:
 		Input.parse_input_event(ne)
-		# Input.call_deferred("parse_input_event", ne)
 
 func _available_action(e) -> Gonsol_Event:
 	if e.is_action("GONSOL_ACTIVITY"):
@@ -182,11 +184,9 @@ func _is_g_action(e, k:String) -> bool:
 			return true
 	return false
 
-#var default_focus_owner:Control -- timer?
 func on_my_turn(n:Control=null):
-	# print(focus_owner == n)
 	if focus_owner != n:
-		print("focus change to %s"%[n])
+		# print("focus change to %s"%[n])
 		_release()
 		_grab(n)
 
@@ -195,7 +195,6 @@ func _grab(n:Control):
 		n = default_focus_owner
 	focus_owner = n
 	focus_owner.grab_focus()
-	# print(focus_owner)
 
 func _release():
 	prev_focus_owner = focus_owner
@@ -212,64 +211,3 @@ func set_collect(k:String, xfns:Array):
 	for fn in xfns:
 		fns.push_back(fn)
 	_c[k] = fns
-
-#func print_mouse_enter_focus(_d):
-#	print("mouse entered gonsol area")
-
-#func print_mouse_exit_focus(_d):
-#	print("mouse exit gonsol area")
-
-#func _r_mouse_enter(_d):
-	#connect("mouse_entered", self, "_on_mouse_enter")
-	##process("FOCUS", [funcref(self, "_mouse_enter_focus")])
-	#process("FOCUS", [])
-
-#func _on_mouse_enter():
-#	collect("FOCUS", null)
-
-#func _mouse_enter_focus(_d):
-#	emit_signal("g_focused", true)
-
-#func _r_mouse_exit(_d):
-#	connect("mouse_exited", self, "_on_mouse_exit")
-	##process("DEFOCUS", [funcref(self, "_mouse_exit_focus")])
-	#process("DEFOCUS", [])
-
-#func _on_mouse_exit():
-#	collect("DEFOCUS", null)
-
-#func _mouse_exit_focus(_d):
-#	emit_signal("g_focused", false)
-
-#func _g_action(k:String) -> InputEventAction:
-#	var ev = InputEventAction.new()
-#	ev.action = k
-#	return ev
-
-#func _is_action(e):
-#	if (e is InputEventAction):
-#		print("action at _input %s"%[e.action])
-
-#func _i_gui():
-#	set_collect("GUI", _guiers())
-
-#func _guiers() -> Array:
-#	return [
-#		funcref(self, "_is_gui"),
-#		# funcref(self, "_is_scroll"),
-#	]
-
-#func _gui_input(e):
-#	print(e)
-#	if captured:
-#		collect("GUI", e)
-
-#func _is_available(e):
-#	if (e is Gonsol_Event):
-#		return
-#	var ne = _available_action(e)
-#	if ne != null:
-#		Input.parse_input_event(ne) # emit_signal("display", ne)
-#	accept_event()
-
-
