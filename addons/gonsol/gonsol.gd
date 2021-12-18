@@ -123,6 +123,7 @@ func _link_display_item(i:Display_Item):
 
 func gui_write_attach(nxt:Display_Item):
 	g_lines.add_child(nxt)
+	# yield/await hold line until called for
 	g_line.raise()
 
 func output_post():
