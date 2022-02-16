@@ -5,9 +5,7 @@ const height_margin:int = 1
 func _ready():
 	for fn in readyers():
 		fn.call_func()
-	# print("rows: %s columns: %s" % [window_rows_normal(), window_columns_normal()])
-	# row_height_static = row_height_normal()
-
+	
 func readyers() -> Array:
 	return [ 
 		funcref(self, "_r_row"),
@@ -35,13 +33,11 @@ func row_height(t:String) -> int:
 
 func string_row_count_normal(v:String) -> int:
 	var fc = v.split("\n")
-	# print("string_row_count_normal: %s" % fc.size())
 	return fc.size()
 
 func string_rows_height_normal(v:String) -> int:
 	return string_row_count_normal(v) * row_height_static # row_height_normal()
 
-# rows - lineedit
 #func rows_to_clear(ft:String) -> int:
 #	return window_rows(ft) - 1
 
@@ -92,10 +88,10 @@ func string_columns_width_normal(v:String) -> int:
 #	return int(string_columns_width(v, ft)/column_width(ft))
 
 # does not handle tabs or newlines
+# parse out bbcode OR remove this as unecessary
 func string_column_count_normal(v:String) -> int:
-	# parse out bbcode OR remove this as unecessary
 	return v.length()
-	#return int(string_columns_width_normal(v)/column_width_normal())	
+	# return int(string_columns_width_normal(v)/column_width_normal())	
 
 const tab_columns:int = 4
 
@@ -108,7 +104,6 @@ func string_column_count_max_normal(v:String) -> int:
 	for i in range(spl_n.size()):
 		var s = spl_n[i]
 		var spl_t = s.split("\t")
-		#print("%s %s %s %s" % [s, string_columns_width_normal(s), string_column_count_normal(s), spl_t])
 		var sz_count:int = 0
 		if spl_t.size() > 1:
 			for t_frag in spl_t:

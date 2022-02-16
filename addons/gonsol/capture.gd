@@ -1,5 +1,3 @@
-# scrolling
-# output selection for copy + paste
 extends Control
 
 var _c:Dictionary
@@ -10,7 +8,6 @@ var focused:bool
 var focus_owner:Control
 var prev_focus_owner:Control
 var default_focus_owner:Control
-# mode: line (review & completion with arrows, tab), default (arrows scroll, no tab) 
 
 signal captured(c)
 
@@ -63,7 +60,6 @@ func _r_capturing(_d):
 	set_collect("DEFOCUS", [funcref(self, "_is_released")])
 	set_collect("CAPTURING", [
 		funcref(self, "_is_esc"),
-		# funcref(self, "_is_clear"), 
 		funcref(self, "_is_gonsol"),
 		])
 
@@ -72,7 +68,7 @@ func _input(e):
 	if !paused:
 		collect("INPUTING", e)        # mouse_postion,is_focus 
 		if captured:
-			collect("CAPTURING", e)   # is_esc,is_clear,is_gonsol,etc.
+			collect("CAPTURING", e)   # is_esc,is_gonsol,etc.
 
 func _inputers() -> Array:
 	return [
@@ -149,7 +145,7 @@ func _is_released(_d):
 	emit_signal("captured", false)
 
 func _on_captured(s:bool):
-	captured = s # print("captured == "+String(captured))
+	captured = s
 
 func _is_esc(e):
 	if (e is InputEvent):
@@ -186,7 +182,6 @@ func _is_g_action(e, k:String) -> bool:
 
 func on_my_turn(n:Control=null):
 	if focus_owner != n:
-		# print("focus change to %s"%[n])
 		_release()
 		_grab(n)
 

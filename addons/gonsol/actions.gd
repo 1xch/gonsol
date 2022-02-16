@@ -2,7 +2,7 @@ class_name Gonsol_Actions
 extends Reference
 
 var _inm                                # InputMap
-var _available:Array setget ,Available  #  
+var _available:Array setget ,Available  # aggregate actions for return  
 
 func _init(inm):
 	_inm = inm
@@ -22,13 +22,12 @@ func generateable() -> Array:
 		{"TYPE":KEYS, "ACTION":"GONSOL_SCROLL","SCAN":[KEY_PAGEUP,KEY_PAGEDOWN]},
 		{"TYPE":KEYS, "ACTION":"GONSOL_REVIEW","SCAN":[KEY_UP,KEY_DOWN]},
 		{"TYPE":KEYS, "ACTION":"GONSOL_COMPLETE","SCAN":[KEY_TAB]},
-		# CTRL-L: clear
 	]
 
 enum{
 	KEYS,
 	MOUSE_BUTTON,
-	# MOUSE_MOVE, # numerous issues prevent implementation i.e. cannot get is_action to respond, yet
+	# MOUSE_MOVE,
 }
 
 func push(d):

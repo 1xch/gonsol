@@ -6,7 +6,6 @@ var next_bump:int                     # number of lines for next output result
 var g_scroll:ScrollContainer          # held inside Display
 var g_lines:VBoxContainer             # held inside Display scrollcontainer
 var g_line:HBoxContainer              # prompt & linedit Display_Item
-# var inner_clear_count_fn:FuncRef     # number of lines to 'clear' i.e. push up display items so none are visible
 var g_capture:Control                 # Capture
 
 func _ready():
@@ -26,29 +25,23 @@ func _readyers() -> Array:
 
 func _r_window():
 	g_window = $Window
-	# g_window.propagate_call("set_mouse_filter", [Control.MOUSE_FILTER_IGNORE])
 
 func _r_capture():
 	g_capture = $Window/Capture
 	g_capture.set_collect("PAUSE_ENTER", [funcref(self, "_enter_pause")])
 	g_capture.set_collect("PAUSE_EXIT", [funcref(self, "_exit_pause")])
 	g_capture.call_deferred("_toggle")
-	# g_capture.propagate_call("set_mouse_filter", [Control.MOUSE_FILTER_PASS])
-	# g_capture.set_mouse_filter(Control.MOUSE_FILTER_PASS)
 
 func _r_display():
 	g_display = $Window/Display
-	# inner_clear_count_fn = funcref(g_display, "display_rows_normal")
 
 func _r_scroll():
 	g_scroll = $Window/Display/ScrollContainer
 	g_scroll.set_follow_focus(true)
-	g_scroll.mouse_filter = Control.MOUSE_FILTER_PASS #IGNORE
+	g_scroll.mouse_filter = Control.MOUSE_FILTER_PASS
 	var h_scroll = g_scroll.get_h_scrollbar()
-	#h_scroll.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var v_scroll = g_scroll.get_v_scrollbar()
-	#v_scroll.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	v_scroll.connect("changed", self, "auto_scroll") # on Range object
+	v_scroll.connect("changed", self, "auto_scroll")
 
 # TODO: remove magic numbers
 var auto_scroll_lock_out:bool
@@ -58,7 +51,7 @@ func auto_scroll():
 	auto_scroll_lock_out = true
 	if next_bump > 0:
 		var curr = g_scroll.scroll_vertical
-		g_scroll.scroll_vertical = (curr + (next_bump + (g_display.row_height_static*6))) # unwanted magic number fudge factor 
+		g_scroll.scroll_vertical = (curr + (next_bump + (g_display.row_height_static*6))) # this is arbitrary 
 		next_bump = 0
 	#auto_scroll_lock_out = false
 
@@ -70,7 +63,6 @@ func _r_line():
 	g_line.set_string_ratio_width_fn(funcref(g_display, "string_ratio_width_normal"))
 	g_line.Next()
 	g_line.set_text_entered(funcref(self, "_input_exec"))
-	# g_line_edit.connect("text_changed", completer, "update")
 	_link_display_item(g_line)
 	g_lines.add_child(g_line)
 	g_line.raise()
@@ -118,12 +110,10 @@ func new_output(message:String, called:String=no_called) -> Display_Item:
 
 func _link_display_item(i:Display_Item):
 	i.connect("my_turn", g_capture, "on_my_turn")
-	# g_capture.connect("display", i, "on_display")
 	g_capture.connect("captured", i, "on_capture")
 
 func gui_write_attach(nxt:Display_Item):
 	g_lines.add_child(nxt)
-	# yield/await hold line until called for
 	g_line.raise()
 
 func output_post():
@@ -138,12 +128,6 @@ func _exit_pause(_d):
 	g_line.Next()
 	g_line.get_focus()
 	g_capture.capture_state()
-
-#func clear_count() -> int:
-#	var ret = 0
-#	if inner_clear_count_fn != null:
-#		ret = inner_clear_count_fn.call_func()
-#	return ret
 
 func _input(e):
 	if (e is Gonsol_Event):

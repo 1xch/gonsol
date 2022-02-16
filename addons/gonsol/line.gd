@@ -74,20 +74,17 @@ func _on_text_entered(t:String):
 	for fn in _text_entered:
 		fn.call_func(t)
 
-# input
 func _focused():
-	# _data.add_stylebox_override("normal", f_style)
 	emit_signal("my_turn", _line_edit)
 	
 func _defocused():
-	pass#	_data.add_stylebox_override("normal", d_style)
+	pass
 	
 func grab_focus():
 	_line_edit.grab_focus()
 	_line_edit.clear()
 	
 func _gui_input(e):
-	# print(e)
 	if has_focus():
 		accept_event()
 
