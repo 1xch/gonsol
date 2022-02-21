@@ -54,8 +54,8 @@ func display_columns_normal() -> int:
 	var cw = column_width_normal()
 	return int(sz.x/cw)
 
-# I have no easy solution for this.
-# probably should be width of a W in the current font
+# There is no easy solution for this currently.
+# Probably, should be width of a W in the current font
 var column_width_fuzz_factor:float = 0.75
 
 func column_width_normal() -> float:
